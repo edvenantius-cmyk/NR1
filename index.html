@@ -1144,6 +1144,7 @@ function openRelato(id) {
     <div style="display:flex;gap:8px;flex-wrap:wrap;" class="no-print">
       <button class="btn btn-primary" onclick="saveRelato()">💾 Salvar alterações</button>
       <button class="btn btn-secondary" onclick="printRelato()">🖨️ Imprimir relato</button>
+      <button class="btn btn-danger" onclick="deleteRelato()">🗑️ Apagar relato</button>
       <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
     </div>
   `;
@@ -1189,6 +1190,18 @@ function printRelato() {
 function closeModal() {
   document.getElementById('modal-relato').classList.remove('open');
   currentRelato = null;
+}
+
+async function deleteRelato() {
+  if (!currentRelato) return;
+  if (!confirm(`Apagar o relato ${currentRelato.proto}? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await db.collection('relatos').doc(currentRelato.id).delete();
+    allRelatos = allRelatos.filter(r => r.id !== currentRelato.id);
+    closeModal();
+    renderRelatos();
+    renderDashboard();
+  } catch(e) { alert('Erro ao apagar. Verifique a conexão.'); console.error(e); }
 }
 
 // ══════════════ MANUAL ══════════════
@@ -1239,15 +1252,26 @@ function renderManualList() {
     return `<div class="report-row" style="cursor:default;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="font-size:13px;">${fmtDate(parseDate(m.fromDate))} → ${fmtDate(parseDate(m.toDate))}</strong>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
           <span class="badge" style="background:var(--green-100);color:var(--green-800);">${m.acolhimentos||0} acolhimentos</span>
           <span class="badge" style="background:var(--red-100);color:var(--red-900);">${m.afastamentos||0} afastamentos CID-F</span>
           <span class="badge" style="background:var(--amber-100);color:var(--amber-900);">Turnover: ${tv}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteManual('${m.id}')">🗑️ Apagar</button>
         </div>
       </div>
       ${m.clima?`<div style="font-size:13px;color:var(--text-secondary);">${m.clima}</div>`:''}
     </div>`;
   }).join('');
+}
+
+async function deleteManual(id) {
+  if (!confirm('Apagar este registro manual? Esta ação não pode ser desfeita.')) return;
+  try {
+    await db.collection('manual_data').doc(id).delete();
+    allManual = allManual.filter(m => m.id !== id);
+    renderManualList();
+    renderDashboard();
+  } catch(e) { alert('Erro ao apagar. Verifique a conexão.'); console.error(e); }
 }
 
 // ══════════════ ADMIN TABS ══════════════
