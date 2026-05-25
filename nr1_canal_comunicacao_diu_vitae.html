@@ -1,0 +1,552 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, 'Segoe UI', sans-serif); }
+  .app { min-height: 600px; background: var(--color-background-tertiary); }
+
+  .header { background: #1a2e1a; color: #e8f5e9; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header-logo { display: flex; align-items: center; gap: 10px; }
+  .header-logo .mark { width: 32px; height: 32px; background: #4caf50; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; color: #fff; }
+  .header-logo span { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; }
+  .header-sub { font-size: 12px; color: #a5d6a7; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab { padding: 6px 14px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; border: none; background: transparent; color: #a5d6a7; transition: background 0.15s; }
+  .nav-tab.active { background: #2e4d2e; color: #e8f5e9; }
+  .nav-tab:hover { background: #2e4d2e; }
+
+  .screen { display: none; padding: 20px; }
+  .screen.active { display: block; }
+
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .card-sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; display: block; }
+  .form-label .opt { font-size: 11px; color: var(--color-text-tertiary); }
+  input[type=text], textarea, select { width: 100%; font-size: 14px; padding: 8px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+  textarea { resize: vertical; min-height: 90px; }
+  select { height: 36px; }
+
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .risk-item { border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .risk-item.sel { border-color: #388e3c; background: #e8f5e9; }
+  .risk-item .ri { font-size: 18px; margin-bottom: 4px; }
+  .risk-item .rl { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+  .risk-item .rd { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+  .sev-row { display: flex; gap: 8px; }
+  .sev-btn { flex: 1; padding: 8px; border: 1.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); text-align: center; transition: all 0.15s; }
+  .sev-btn.s1.sel { border-color: #f59e0b; background: #fef3c7; color: #92400e; }
+  .sev-btn.s2.sel { border-color: #f97316; background: #fff7ed; color: #9a3412; }
+  .sev-btn.s3.sel { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+
+  .submit-btn { width: 100%; padding: 12px; background: #1a2e1a; color: #e8f5e9; border: none; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 4px; transition: background 0.15s; }
+  .submit-btn:hover { background: #2e4d2e; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .success-box { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: var(--border-radius-lg); padding: 24px; text-align: center; display: none; }
+  .success-box .icon { font-size: 32px; margin-bottom: 8px; }
+  .success-box p { font-size: 14px; color: #2e7d32; }
+  .success-box .proto { font-size: 20px; font-weight: 500; color: #1b5e20; margin: 8px 0; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; }
+  .metric .ml { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .metric .mv { font-size: 26px; font-weight: 500; color: var(--color-text-primary); }
+  .metric .mt { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+
+  .month-sel { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .month-sel select { width: auto; }
+
+  .reports-list { }
+  .report-row { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: background 0.12s; }
+  .report-row:hover { background: var(--color-background-secondary); }
+  .report-row .badge { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; }
+  .badge-open { background: #f59e0b; }
+  .badge-review { background: #3b82f6; }
+  .badge-done { background: #22c55e; }
+  .report-row .rinfo { flex: 1; }
+  .report-row .rtitle { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .report-row .rmeta { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .report-row .rsev { font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+  .rsev-1 { background: #fef3c7; color: #92400e; }
+  .rsev-2 { background: #fff7ed; color: #9a3412; }
+  .rsev-3 { background: #fef2f2; color: #991b1b; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 24px; width: 560px; max-width: 95vw; max-height: 85vh; overflow-y: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-text-secondary); line-height: 1; }
+  .plan-section { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; margin-bottom: 12px; }
+  .plan-section h4 { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .plan-step { font-size: 13px; color: var(--color-text-primary); padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; gap: 8px; align-items: flex-start; }
+  .plan-step:last-child { border-bottom: none; }
+  .plan-num { color: #388e3c; font-weight: 500; flex-shrink: 0; }
+  .status-sel { display: flex; gap: 6px; margin-top: 12px; }
+  .status-btn { padding: 6px 12px; font-size: 12px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .status-btn.active-status { background: #1a2e1a; color: #e8f5e9; border-color: #1a2e1a; }
+
+  .manual-form { }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--color-text-secondary); font-size: 14px; }
+  .empty-state i { font-size: 36px; margin-bottom: 8px; display: block; opacity: 0.4; }
+
+  .alert-bar { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: #2e7d32; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .sla-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #fef3c7; color: #92400e; }
+</style>
+
+<h2 class="sr-only">Canal de Comunicação e Saúde NR-1 — Diu Vitae</h2>
+
+<div class="app">
+  <div class="header">
+    <div class="header-logo">
+      <div class="mark">DV</div>
+      <div>
+        <div style="font-size:15px;font-weight:500;">Canal de Saúde e Bem-Estar</div>
+        <div class="header-sub">Grupo Diu Vitae — Programa NR-1 / PGR</div>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('colaborador')"><i class="ti ti-heart" aria-hidden="true"></i> Colaborador</button>
+      <button class="nav-tab" onclick="switchTab('admin')"><i class="ti ti-shield" aria-hidden="true"></i> Painel RH</button>
+    </div>
+  </div>
+
+  <div id="screen-colaborador" class="screen active">
+    <div class="card">
+      <div class="card-title">Relatar uma situação</div>
+      <div class="card-sub">Seu relato é confidencial. Você não precisa se identificar. O RH receberá e tratará com sigilo absoluto.</div>
+
+      <div id="form-area">
+        <div class="form-group">
+          <label class="form-label">Qual situação você quer relatar? <span class="opt">(selecione uma ou mais)</span></label>
+          <div class="risk-grid">
+            <div class="risk-item" onclick="toggleRisk(this,'comportamento')" data-risk="comportamento">
+              <div class="ri"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+              <div class="rl">Comportamento ofensivo</div>
+              <div class="rd">Grosseria, assédio, desrespeito</div>
+            </div>
+            <div class="risk-item" onclick="toggleRisk(this,'fadiga')" data-risk="fadiga">
+              <div class="ri"><i class="ti ti-battery-low" aria-hidden="true"></i></div>
+              <div class="rl">Sobrecarga e fadiga</div>
+              <div class="rd">Carga excessiva, sem pausas</div>
+            </div>
+            <div class="risk-item" onclick="toggleRisk(this,'conflito')" data-risk="conflito">
+              <div class="ri"><i class="ti ti-arrows-exchange" aria-hidden="true"></i></div>
+              <div class="rl">Conflito entre equipes</div>
+              <div class="rd">Atrito entre setores ou colegas</div>
+            </div>
+            <div class="risk-item" onclick="toggleRisk(this,'saude_mental')" data-risk="saude_mental">
+              <div class="ri"><i class="ti ti-brain" aria-hidden="true"></i></div>
+              <div class="rl">Saúde mental</div>
+              <div class="rd">Ansiedade, esgotamento, choro</div>
+            </div>
+            <div class="risk-item" onclick="toggleRisk(this,'escala')" data-risk="escala">
+              <div class="ri"><i class="ti ti-calendar-x" aria-hidden="true"></i></div>
+              <div class="rl">Escala e jornada</div>
+              <div class="rd">Horas extras, folgas negadas</div>
+            </div>
+            <div class="risk-item" onclick="toggleRisk(this,'outro')" data-risk="outro">
+              <div class="ri"><i class="ti ti-dots" aria-hidden="true"></i></div>
+              <div class="rl">Outro</div>
+              <div class="rd">Situação não listada</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nível de impacto na sua saúde ou trabalho</label>
+          <div class="sev-row">
+            <button class="sev-btn s1" onclick="setSev(1,this)">⚠ Moderado<br><span style="font-size:10px;opacity:0.7">Gera desconforto</span></button>
+            <button class="sev-btn s2" onclick="setSev(2,this)">🔶 Alto<br><span style="font-size:10px;opacity:0.7">Afeta meu dia a dia</span></button>
+            <button class="sev-btn s3" onclick="setSev(3,this)">🔴 Urgente<br><span style="font-size:10px;opacity:0.7">Preciso de apoio agora</span></button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Conte o que aconteceu <span class="opt">(seja o mais detalhado que quiser)</span></label>
+          <textarea id="descricao" placeholder="Descreva a situação. Quando aconteceu, com quem, e como afetou você..."></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Seu nome <span class="opt">(opcional — pode ficar em branco)</span></label>
+            <input type="text" id="colab-nome" placeholder="Anônimo se deixar em branco">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Pessoa ou setor envolvido <span class="opt">(opcional)</span></label>
+            <input type="text" id="envolvido" placeholder="Ex: colega, familiar do residente...">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+          <label class="form-label">Seu cargo <span class="opt">(opcional — ajuda o RH a entender o contexto)</span></label>
+          <select id="cargo">
+            <option value="">Prefiro não informar</option>
+            <option>Cuidadora de Idosos</option>
+            <option>Técnica de Enfermagem</option>
+            <option>Auxiliar de Enfermagem</option>
+            <option>Enfermeira</option>
+            <option>Cozinheira / Aux. Cozinha</option>
+            <option>Arrumadeira</option>
+            <option>Supervisora</option>
+            <option>Outro</option>
+          </select>
+        </div>
+
+        <button class="submit-btn" onclick="submitRelato()">Enviar relato com sigilo total</button>
+      </div>
+
+      <div class="success-box" id="success-box">
+        <div class="icon"><i class="ti ti-circle-check" aria-hidden="true" style="color:#2e7d32;font-size:40px;"></i></div>
+        <p>Seu relato foi registrado com sucesso.</p>
+        <div class="proto" id="proto-num"></div>
+        <p style="margin-bottom:8px;">Guarde esse número de protocolo — você pode usá-lo para acompanhamento.</p>
+        <p>O RH tem <strong>24 horas</strong> para dar início à apuração. Obrigado por confiar no canal.</p>
+        <button style="margin-top:16px;padding:8px 20px;background:#1a2e1a;color:#e8f5e9;border:none;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;" onclick="resetForm()">Enviar outro relato</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-admin" class="screen">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="nav-tab active" id="tab-dashboard" onclick="adminTab('dashboard')" style="background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary);">Dashboard</button>
+      <button class="nav-tab" id="tab-relatos" onclick="adminTab('relatos')" style="background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary);">Relatos</button>
+      <button class="nav-tab" id="tab-inserir" onclick="adminTab('inserir')" style="background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-tertiary);">Inserir dados</button>
+    </div>
+
+    <div id="adm-dashboard">
+      <div class="month-sel">
+        <label style="font-size:13px;color:var(--color-text-secondary);">Competência:</label>
+        <select id="mes-sel" onchange="renderDashboard()">
+          <option value="2026-05">Maio / 2026</option>
+          <option value="2026-04">Abril / 2026</option>
+          <option value="2026-06">Junho / 2026</option>
+        </select>
+      </div>
+      <div class="metrics-grid" id="metrics-grid"></div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;">Status do clima e ações</div>
+        <div id="status-clima" style="font-size:13px;color:var(--color-text-primary);"></div>
+      </div>
+    </div>
+
+    <div id="adm-relatos" style="display:none;">
+      <div class="alert-bar"><i class="ti ti-lock" aria-hidden="true"></i> Acesso restrito — conteúdo sigiloso. SLA: apuração iniciada em até 24h do recebimento.</div>
+      <div id="relatos-list"></div>
+    </div>
+
+    <div id="adm-inserir" style="display:none;">
+      <div class="card">
+        <div class="card-title">Inserir dados manualmente</div>
+        <div class="card-sub">Registre acolhimentos presenciais, afastamentos e turnover que chegaram por outros canais.</div>
+        <div class="section-title" style="margin-top:4px;">Mês de referência</div>
+        <div class="form-group">
+          <select id="ins-mes">
+            <option value="2026-05">Maio / 2026</option>
+            <option value="2026-04">Abril / 2026</option>
+            <option value="2026-06">Junho / 2026</option>
+          </select>
+        </div>
+        <div class="section-title">Acolhimentos individuais (presenciais / WhatsApp / e-mail)</div>
+        <div class="two-col">
+          <div class="form-group">
+            <label class="form-label">Nº de acolhimentos no mês</label>
+            <input type="text" id="ins-acolhimentos" placeholder="Ex: 5">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Casos apurados/resolvidos (outros canais)</label>
+            <input type="text" id="ins-resolvidos" placeholder="Ex: 2">
+          </div>
+        </div>
+        <div class="section-title">Afastamentos</div>
+        <div class="form-group">
+          <label class="form-label">Afastamentos médicos CID-10 Grupo F (transt. mentais)</label>
+          <input type="text" id="ins-afastamentos" placeholder="Ex: 1">
+        </div>
+        <div class="section-title">Turnover</div>
+        <div class="two-col">
+          <div class="form-group">
+            <label class="form-label">Desligamentos voluntários no mês</label>
+            <input type="text" id="ins-desligamentos" placeholder="Ex: 1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total de colaboradores</label>
+            <input type="text" id="ins-total-colab" placeholder="Ex: 28">
+          </div>
+        </div>
+        <div class="section-title">Status do clima / ação corretiva</div>
+        <div class="form-group">
+          <textarea id="ins-clima" placeholder="Ex: Rodada de acolhimento realizada. Treinamento CNV agendado para 10/06." style="min-height:70px;"></textarea>
+        </div>
+        <button class="submit-btn" onclick="saveManual()">Salvar dados do mês</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="card-title" id="modal-title"></div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+let selectedRisks = [];
+let severity = 0;
+let relatos = [];
+let manualData = {};
+let openRelato = null;
+
+const RISK_LABELS = {
+  comportamento: 'Comportamento ofensivo',
+  fadiga: 'Sobrecarga e fadiga',
+  conflito: 'Conflito entre equipes',
+  saude_mental: 'Saúde mental',
+  escala: 'Escala e jornada',
+  outro: 'Outro'
+};
+
+const PLANS = {
+  comportamento: [
+    'Registrar o relato formalmente no sistema de ouvidoria.',
+    'Acolher a colaboradora e confirmar recebimento em até 24h.',
+    'Conduzir apuração sigilosa com todas as partes envolvidas.',
+    'Aplicar advertência formal ou medida disciplinar conforme gravidade.',
+    'Realizar reunião de clima com a equipe afetada (CNV).',
+    'Monitorar por 30 dias para garantir não-retaliação.'
+  ],
+  fadiga: [
+    'Revisar a escala da colaboradora nos últimos 30 dias.',
+    'Verificar cumprimento das pausas obrigatórias no setor.',
+    'Redistribuir carga entre os casos mais desgastantes.',
+    'Orientar a supervisora sobre fiscalização ativa de pausas.',
+    'Agendar entrevista de acolhimento individual com a colaboradora.',
+    'Avaliar necessidade de suporte de saúde ocupacional (PCMSO).'
+  ],
+  conflito: [
+    'Identificar os setores e pessoas envolvidas no atrito.',
+    'Convocar sessão de mediação com CNV em até 48h.',
+    'Separar temporariamente as partes em conflito se necessário.',
+    'Documentar os fatos e resultado da mediação.',
+    'Acompanhar o clima do setor por 15 dias após a mediação.',
+    'Incluir caso no treinamento de liderança como exemplo anonimizado.'
+  ],
+  saude_mental: [
+    'Realizar acolhimento individual imediato com a colaboradora.',
+    'Avaliar necessidade de encaminhamento médico (CID Grupo F).',
+    'Reduzir temporariamente carga de trabalho se necessário.',
+    'Acionar o médico do trabalho (PCMSO) para avaliação.',
+    'Registrar no indicador de afastamento preventivo.',
+    'Fazer follow-up semanal durante 30 dias.'
+  ],
+  escala: [
+    'Revisar a escala do período reclamado com a supervisão.',
+    'Verificar legislação sobre banco de horas e folgas compensatórias.',
+    'Corrigir a escala e comunicar a colaboradora formalmente.',
+    'Orientar a supervisora sobre distribuição equitativa.',
+    'Incluir no próximo ciclo de acolhimento coletivo.',
+    'Atualizar o PGR com o risco identificado se recorrente.'
+  ],
+  outro: [
+    'Realizar acolhimento para entender melhor a situação.',
+    'Classificar o risco conforme análise do RH.',
+    'Definir plano de ação específico após diagnóstico.',
+    'Documentar e incluir no relatório mensal de indicadores.',
+    'Comunicar ação adotada à colaboradora em até 5 dias.'
+  ]
+};
+
+function genProto() {
+  return 'NR1-' + Date.now().toString().slice(-6);
+}
+
+function toggleRisk(el, risk) {
+  el.classList.toggle('sel');
+  if (selectedRisks.includes(risk)) {
+    selectedRisks = selectedRisks.filter(r => r !== risk);
+  } else {
+    selectedRisks.push(risk);
+  }
+}
+
+function setSev(n, btn) {
+  severity = n;
+  document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function submitRelato() {
+  if (!selectedRisks.length) { alert('Selecione pelo menos uma situação.'); return; }
+  if (!severity) { alert('Selecione o nível de impacto.'); return; }
+  const desc = document.getElementById('descricao').value.trim();
+  if (!desc) { alert('Descreva o que aconteceu.'); return; }
+
+  const proto = genProto();
+  const now = new Date();
+  const mes = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+  const relato = {
+    id: proto,
+    risks: [...selectedRisks],
+    severity,
+    descricao: desc,
+    nome: document.getElementById('colab-nome').value.trim() || 'Anônimo',
+    envolvido: document.getElementById('envolvido').value.trim() || '-',
+    cargo: document.getElementById('cargo').value || 'Não informado',
+    data: now.toLocaleDateString('pt-BR'),
+    mes,
+    status: 'aberto',
+    sla: new Date(now.getTime() + 24*60*60*1000).toLocaleDateString('pt-BR')
+  };
+
+  relatos.push(relato);
+  document.getElementById('proto-num').textContent = proto;
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('success-box').style.display = 'block';
+}
+
+function resetForm() {
+  selectedRisks = [];
+  severity = 0;
+  document.querySelectorAll('.risk-item').forEach(r => r.classList.remove('sel'));
+  document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('descricao').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('envolvido').value = '';
+  document.getElementById('cargo').value = '';
+  document.getElementById('form-area').style.display = 'block';
+  document.getElementById('success-box').style.display = 'none';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'admin') { renderDashboard(); renderRelatos(); }
+}
+
+function adminTab(tab) {
+  ['dashboard','relatos','inserir'].forEach(t => {
+    document.getElementById('adm-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active-status', t === tab);
+  });
+  if (tab === 'relatos') renderRelatos();
+  if (tab === 'dashboard') renderDashboard();
+}
+
+function getMesData(mes) {
+  return manualData[mes] || { acolhimentos: 0, resolvidos: 0, afastamentos: 0, desligamentos: 0, totalColab: 0, clima: '' };
+}
+
+function renderDashboard() {
+  const mes = document.getElementById('mes-sel').value;
+  const md = getMesData(mes);
+  const mesRelatos = relatos.filter(r => r.mes === mes);
+  const denuncias = mesRelatos.length;
+  const casosDig = mesRelatos.filter(r => r.status === 'resolvido').length;
+  const totalResolvidos = (md.resolvidos || 0) + casosDig;
+  const turnover = md.totalColab > 0 ? ((md.desligamentos / md.totalColab) * 100).toFixed(1) : '0.0';
+
+  const grid = document.getElementById('metrics-grid');
+  grid.innerHTML = `
+    <div class="metric"><div class="ml">Acolhimentos</div><div class="mv">${(md.acolhimentos||0) + mesRelatos.length}</div><div class="mt">Individuais no mês</div></div>
+    <div class="metric"><div class="ml">Relatos recebidos</div><div class="mv">${denuncias}</div><div class="mt">Via canal digital</div></div>
+    <div class="metric"><div class="ml">Casos resolvidos</div><div class="mv">${totalResolvidos}</div><div class="mt">Apurados e encerrados</div></div>
+    <div class="metric"><div class="ml">Afastamentos CID-F</div><div class="mv">${md.afastamentos||0}</div><div class="mt">Saúde mental</div></div>
+    <div class="metric"><div class="ml">Turnover voluntário</div><div class="mv">${turnover}%</div><div class="mt">${md.desligamentos||0} deslig. / ${md.totalColab||'—'} colab.</div></div>
+  `;
+
+  const mesLabel = { '2026-05':'Maio / 2026','2026-04':'Abril / 2026','2026-06':'Junho / 2026' }[mes] || mes;
+  const climaText = md.clima || (denuncias === 0 && (md.acolhimentos||0) === 0 ? 'Nenhuma ocorrência registrada. Monitoramento contínuo ativo.' : 'Rodada de acolhimento em andamento. Planos de ação iniciados.');
+  document.getElementById('status-clima').innerHTML = `<strong style="font-size:12px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.4px;">${mesLabel}</strong><br><span style="line-height:1.7;">${climaText}</span>`;
+}
+
+function renderRelatos() {
+  const list = document.getElementById('relatos-list');
+  if (!relatos.length) {
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-inbox" aria-hidden="true"></i>Nenhum relato recebido ainda.</div>';
+    return;
+  }
+  list.innerHTML = relatos.map((r,i) => `
+    <div class="report-row" onclick="openRelatoModal(${i})">
+      <div class="badge badge-${r.status === 'aberto' ? 'open' : r.status === 'apurando' ? 'review' : 'done'}"></div>
+      <div class="rinfo">
+        <div class="rtitle">${r.risks.map(rk => RISK_LABELS[rk]).join(', ')}</div>
+        <div class="rmeta">${r.data} · ${r.cargo} · Protocolo: ${r.id} · <span class="sla-badge">SLA: ${r.sla}</span></div>
+        <div class="rmeta" style="margin-top:4px;color:var(--color-text-primary);">${r.descricao.slice(0,100)}${r.descricao.length>100?'…':''}</div>
+      </div>
+      <span class="rsev rsev-${r.severity}">${r.severity===1?'⚠ Moderado':r.severity===2?'🔶 Alto':'🔴 Urgente'}</span>
+    </div>
+  `).join('');
+}
+
+function openRelatoModal(idx) {
+  openRelato = idx;
+  const r = relatos[idx];
+  document.getElementById('modal-title').textContent = r.risks.map(rk => RISK_LABELS[rk]).join(' · ');
+  document.getElementById('modal-meta').textContent = `Protocolo ${r.id} · ${r.data} · ${r.cargo} · Envolvido: ${r.envolvido} · Colaboradora: ${r.nome}`;
+
+  const allRisks = [...new Set(r.risks)];
+  const steps = allRisks.flatMap(rk => PLANS[rk] || PLANS['outro']);
+  const uniqueSteps = [...new Set(steps)];
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="plan-section" style="margin-bottom:12px;">
+      <h4>Relato da colaboradora</h4>
+      <p style="font-size:13px;color:var(--color-text-primary);line-height:1.6;">${r.descricao}</p>
+    </div>
+    <div class="plan-section">
+      <h4>Plano de ação gerado automaticamente</h4>
+      ${uniqueSteps.slice(0,8).map((s,i) => `<div class="plan-step"><span class="plan-num">${i+1}.</span><span>${s}</span></div>`).join('')}
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;">Status do caso</div>
+      <div class="status-sel">
+        <button class="status-btn ${r.status==='aberto'?'active-status':''}" onclick="setStatus(${idx},'aberto',this)">Aberto</button>
+        <button class="status-btn ${r.status==='apurando'?'active-status':''}" onclick="setStatus(${idx},'apurando',this)">Em apuração</button>
+        <button class="status-btn ${r.status==='resolvido'?'active-status':''}" onclick="setStatus(${idx},'resolvido',this)">Resolvido</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function setStatus(idx, status, btn) {
+  relatos[idx].status = status;
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active-status'));
+  btn.classList.add('active-status');
+  renderRelatos();
+}
+
+function closeModal(e) {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveManual() {
+  const mes = document.getElementById('ins-mes').value;
+  const a = parseInt(document.getElementById('ins-acolhimentos').value) || 0;
+  const res = parseInt(document.getElementById('ins-resolvidos').value) || 0;
+  const af = parseInt(document.getElementById('ins-afastamentos').value) || 0;
+  const des = parseInt(document.getElementById('ins-desligamentos').value) || 0;
+  const tot = parseInt(document.getElementById('ins-total-colab').value) || 0;
+  const clima = document.getElementById('ins-clima').value.trim();
+  manualData[mes] = { acolhimentos: a, resolvidos: res, afastamentos: af, desligamentos: des, totalColab: tot, clima };
+  alert('Dados salvos! Acesse o Dashboard para ver os indicadores atualizados.');
+  adminTab('dashboard');
+  document.getElementById('mes-sel').value = mes;
+  renderDashboard();
+}
+</script>
